@@ -4,6 +4,8 @@ import (
 	"ben/benaziz/backend/database"
 	"database/sql"
 
+	//"os"
+
 	//"database/sql"
 	"fmt"
 	"net/http"
@@ -47,6 +49,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+// 	port := os.Getenv("PORT")
+// if port == "" {
+//     port = "2020"  // Default to 2020 if no PORT variable is set
+// }
+//   err := router.Run(":" + port)
+//   if err != nil {
+// 	panic(err)
+//   }
+
 }
 
 type service struct {
