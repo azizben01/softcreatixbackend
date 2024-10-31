@@ -36,14 +36,14 @@ func ConnectDatabase() {
 	password := os.Getenv("PASSWORD")
 	dbname := os.Getenv("DB_NAME")
 
-	fmt.Println("host:", host)
-	fmt.Println(port)
-	fmt.Println(user)
-	fmt.Println("dbname:", dbname)
-	fmt.Println("password:", password)
+	// fmt.Println("host:", host)
+	// fmt.Println(port)
+	// fmt.Println(user)
+	// fmt.Println("dbname:", dbname)
+	// fmt.Println("password:", password)
 	
 
-	psqlSetup := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	psqlSetup := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=require", host, port, user, password, dbname)
 
 	db, errSql := sql.Open("postgres", psqlSetup) // establishes a connection with the database and this connection is stored in the local variable db.
 

@@ -66,9 +66,10 @@ type service struct {
 	Phonenumber string `json:"phonenumber"`
 	Services    string `json:"services"`
 	Description string `json:"description"`
-	Status      string `json:"status"`
-	ID          int    `json:"id"`
 	IsDeleted   bool   `json:"is_deleted"`
+	ID          int    `json:"id"`
+	Status      string `json:"status"`
+
 }
 
 func requestService(context *gin.Context) {
@@ -98,7 +99,7 @@ func requestList(context *gin.Context) {
 	}
 	for rows.Next() {
 		var list service
-		err := rows.Scan(&list.Name, &list.Email, &list.Phonenumber, &list.Services, &list.Description, &list.IsDeleted, &list.ID, &list.Status, )
+		err := rows.Scan(&list.Name, &list.Email, &list.Phonenumber, &list.Services, &list.Description, &list.IsDeleted, &list.Status,  &list.ID)
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, gin.H{"error": "error processing service request list"})
 			fmt.Println(err)
