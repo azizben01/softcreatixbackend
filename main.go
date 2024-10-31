@@ -3,6 +3,7 @@ package main
 import (
 	"ben/benaziz/backend/database"
 	"database/sql"
+	"os"
 
 	//"os"
 
@@ -45,18 +46,17 @@ func main() {
 			"message": "Working fine",
 		})
 	})
-	err := router.Run(":2020")
-	if err != nil {
-		panic(err)
-	}
-// 	port := os.Getenv("PORT")
-// if port == "" {
-//     port = "2020"  // Default to 2020 if no PORT variable is set
-// }
-//   err := router.Run(":" + port)
-//   if err != nil {
-// 	panic(err)
-//   }
+	// err := router.Run(":2020")
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+port := os.Getenv("PORT")
+if port == "" {
+    port = "2020"  // Fallback for local development
+}
+ router.Run(":" + port)
+
 
 }
 
