@@ -44,7 +44,7 @@ func ConnectDatabase() {
 		panic(err)
 	} else {
 		DB = db //DB: global varialble declared. db: local variable declared
-		fmt.Println("Successfully connected to the databse")
+		fmt.Println("Successfully connected to the database")
 	}
 }
 
