@@ -22,8 +22,8 @@ func main() {
 	database.ConnectDatabase()
 
 	// Add CORS middleware
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "https://userinterface-gkco.vercel.app/"},
+	router.Use(cors.New(cors.Config{                                
+		AllowOrigins:     []string{"http://localhost:3000", "https://userinterface-gkco.vercel.app"},
 		AllowMethods:     []string{"POST", "GET", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
