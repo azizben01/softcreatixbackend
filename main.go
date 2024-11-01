@@ -227,12 +227,14 @@ func AdminLogin(context *gin.Context) {
 	})
 }
 
+type Message struct {
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Message string `json:"message"`
+	Id 		int 	`json:"is"`
+}
 func submitContactForm(context *gin.Context) {
-    var contact struct {
-        Name    string `json:"name"`
-        Email   string `json:"email"`
-        Message string `json:"message"`
-    }
+    var contact Message
 
     if err := context.ShouldBindJSON(&contact); err != nil {
         context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
@@ -248,6 +250,29 @@ func submitContactForm(context *gin.Context) {
     }
 
     context.JSON(http.StatusOK, gin.H{"message": "Contact message successfully sent"})
+}
+
+
+func MessageList(context *gin.Context) {
+	//var reqlist []service
+	var message [] Message
+	rows, err := database.DB.Query("SELECT * FROM contact") // Filter out deleted rows
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "failed to customer message list"})
+		return
+	}
+	for rows.Next() {
+		var list Message
+		err := rows.Scan(&list.Name, &list.Email, &list.Message, &list.Id)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{"error": "error processing customer message list"})
+			fmt.Println(err)
+			return
+		}
+		message = append(message, list)
+	}
+	context.JSON(http.StatusOK, message)
 }
 
 // Generate token then send mail
