@@ -45,6 +45,7 @@ func main() {
 	router.POST("/createadmin", CreateAdmin)
 	router.POST("/adminlogin", AdminLogin)
 	router.POST("/submitcontact", submitContactForm)
+	router.GET ("/messagelist", MessageList)
 
 	//getTokenJSON()
 
