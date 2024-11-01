@@ -243,6 +243,7 @@ func submitContactForm(context *gin.Context) {
         contact.Name, contact.Email, contact.Message)
     if err != nil {
         context.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save contact message"})
+		fmt.Println("could not save message:",err)
         return
     }
 
