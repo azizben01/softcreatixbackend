@@ -234,6 +234,7 @@ type Message struct {
 	Message 		string `json:"message"`
 	Created_at 		*time.Time `json:"created_at"`
 	Id 				int 	`json:"is"`
+	Is_deleted		bool     `json:"is_deleted"`
 }
 func submitContactForm(context *gin.Context) {
     var contact Message
@@ -266,7 +267,7 @@ func MessageList(context *gin.Context) {
 	}
 	for rows.Next() {
 		var list Message
-		err := rows.Scan(&list.Name, &list.Email, &list.Message, &list.Created_at, &list.Id)
+		err := rows.Scan(&list.Name, &list.Email, &list.Message, &list.Created_at, &list.Id, &list.Is_deleted)
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, gin.H{"error": "error processing customer message list"})
 			fmt.Println(err)
