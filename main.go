@@ -44,6 +44,8 @@ func main() {
 	router.DELETE("/deleteRequest/:id", deleteRequest) // New endpoint
 	router.POST("/createadmin", CreateAdmin)
 	router.POST("/adminlogin", AdminLogin)
+	router.POST("/submitcontact", submitContactForm)
+
 	//getTokenJSON()
 
 
@@ -223,8 +225,30 @@ func AdminLogin(context *gin.Context) {
 		"email": storeAdmin.Email,
 		"status": storeAdmin.Status,
 	})
-
 }
+
+func submitContactForm(context *gin.Context) {
+    var contact struct {
+        Name    string `json:"name"`
+        Email   string `json:"email"`
+        Message string `json:"message"`
+    }
+
+    if err := context.ShouldBindJSON(&contact); err != nil {
+        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+        return
+    }
+
+    _, err := database.DB.Exec("INSERT INTO contacts (name, email, message) VALUES ($1, $2, $3)",
+        contact.Name, contact.Email, contact.Message)
+    if err != nil {
+        context.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save contact message"})
+        return
+    }
+
+    context.JSON(http.StatusOK, gin.H{"message": "Contact message successfully sent"})
+}
+
 // Generate token then send mail
 func getTokenJSON() {
 	ctx := context.Background()
