@@ -239,7 +239,7 @@ func submitContactForm(context *gin.Context) {
         return
     }
 
-    _, err := database.DB.Exec("INSERT INTO contacts (name, email, message) VALUES ($1, $2, $3)",
+    _, err := database.DB.Exec("INSERT INTO contact (name, email, message) VALUES ($1, $2, $3)",
         contact.Name, contact.Email, contact.Message)
     if err != nil {
         context.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save contact message"})
