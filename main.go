@@ -46,8 +46,7 @@ func main() {
 	router.POST("/adminlogin", AdminLogin)
 	router.POST("/submitcontact", submitContactForm)
 	router.GET("/messagelist", MessageList)
-	router.DELETE("/deletecustomermessage", DeleteCustomerMessage)
-
+	router.DELETE("/deletecustomermessage/:id", DeleteCustomerMessage)
 	//getTokenJSON()
 
 
