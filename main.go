@@ -45,7 +45,8 @@ func main() {
 	router.POST("/createadmin", CreateAdmin)
 	router.POST("/adminlogin", AdminLogin)
 	router.POST("/submitcontact", submitContactForm)
-	router.GET ("/messagelist", MessageList)
+	router.GET("/messagelist", MessageList)
+	router.DELETE("/deletecustomermessage", DeleteCustomerMessage)
 
 	//getTokenJSON()
 
@@ -276,6 +277,18 @@ func MessageList(context *gin.Context) {
 	}
 	context.JSON(http.StatusOK, message)
 }
+
+
+func DeleteCustomerMessage(context *gin.Context) {
+	id := context.Param("id")
+	_, err := database.DB.Exec("UPDATE contact SET is_deleted = TRUE WHERE id = $1", id) // Set is_deleted to true
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark customer message as deleted"})
+		return
+	}
+	context.JSON(http.StatusOK, gin.H{"message": "customer message marked as deleted"})
+}
+
 
 // Generate token then send mail
 func getTokenJSON() {
