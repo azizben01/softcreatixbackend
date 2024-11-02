@@ -427,6 +427,7 @@ func generateResetCode() (string, error) {
 
 // function for requesting the password reset code via email
 func RequestPasswordReset(ctx *gin.Context) {
+	fmt.Println("RequestPasswordReset function called")
 	var req struct {
 		Email string `json:"email"`
 	}
@@ -444,6 +445,8 @@ func RequestPasswordReset(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email not found"})
 		return
+	} else {
+		fmt.Println("email is existing")
 	}
 
 	// Generate the reset code
@@ -463,6 +466,7 @@ func RequestPasswordReset(ctx *gin.Context) {
 		return
 	}
 	// Send the password reset email
+	fmt.Println("Sending email to:", administrator.Email)
 	err = sendResetEmail(administrator.Email, code)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send password reset email"})
