@@ -64,7 +64,7 @@ func main() {
 	// 	panic(err)
 	// }
 
-port := os.Getenv("SPORT")
+port := os.Getenv("SERVER_PORT")
 if port == "" {
     port = "8080"  // Fallback for local development
 }
