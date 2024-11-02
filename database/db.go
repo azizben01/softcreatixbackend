@@ -31,7 +31,7 @@ func ConnectDatabase() {
         }
     }
 	host := os.Getenv("HOST")
-	port, _ := strconv.Atoi(os.Getenv("DB_PORT"))
+	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	user := os.Getenv("USER")
 	password := os.Getenv("PASSWORD")
 	dbname := os.Getenv("DB_NAME")
