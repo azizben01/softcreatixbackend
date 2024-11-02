@@ -64,7 +64,7 @@ func main() {
 	// 	panic(err)
 	// }
 
-port := os.Getenv("SERVER_PORT")
+port := os.Getenv("PORT")
 if port == "" {
     port = "2020"  // Fallback for local development
 }
