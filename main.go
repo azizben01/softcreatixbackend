@@ -547,8 +547,10 @@ func VerifyResetCode(ctx *gin.Context) {
 // }
 // Function to reset the admin password
 
+// Function to reset the admin password
 func ResetPassword(context *gin.Context) {
 	var req struct {
+		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
@@ -558,23 +560,10 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	// Retrieve admin ID, assuming it's accessible from middleware or session context
-	adminID, exists := context.Get("adminid")
-	if !exists {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	// Convert the admin ID to int (assuming adminID is stored as an int)
-	adminIDInt, ok := adminID.(int)
-	if !ok {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-		return
-	}
-
-	// Retrieve the current password from the database
+	// Retrieve the current password from the database using email
 	var currentHashedPassword string
-	err := database.DB.QueryRow("SELECT password FROM admin WHERE adminid = $1", adminIDInt).Scan(&currentHashedPassword)
+	var adminID string
+	err := database.DB.QueryRow("SELECT adminid, password FROM admin WHERE email = $1", req.Email).Scan(&adminID, &currentHashedPassword)
 	if err == sql.ErrNoRows {
 		context.JSON(http.StatusNotFound, gin.H{"error": "Admin not found"})
 		return
@@ -599,7 +588,7 @@ func ResetPassword(context *gin.Context) {
 	}
 
 	// Update the password in the database
-	_, err = database.DB.Exec("UPDATE admin SET password = $1 WHERE adminid = $2", hashedPassword, adminIDInt)
+	_, err = database.DB.Exec("UPDATE admin SET password = $1 WHERE adminid = $2", hashedPassword, adminID)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
 		return
