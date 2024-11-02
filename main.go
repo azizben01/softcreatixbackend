@@ -48,6 +48,7 @@ func main() {
 	router.POST("/submitcontact", submitContactForm)
 	router.GET("/messagelist", MessageList)
 	router.DELETE("/deletecustomermessage/:id", DeleteCustomerMessage)
+	router.POST("/requestpasswordreset", RequestPasswordReset)
 	//getTokenJSON()
 
 
@@ -63,14 +64,13 @@ func main() {
 	// 	panic(err)
 	// }
 
-port := os.Getenv("PORT")
+port := os.Getenv("SERVER_PORT")
 if port == "" {
     port = "2020"  // Fallback for local development
 }
  router.Run(":" + port)
-
-
 }
+
 
 type service struct {
 	Name        string `json:"name"`
@@ -399,7 +399,8 @@ func sendResetEmail(userEmail string, code string) error {
 
 	var message gmail.Message
 	subject := "Password Reset Request"
-	body := fmt.Sprintf("You requested a password reset. Use the code below to reset your password:\n\n%s", code) // Email body with the numeric code
+	body:=fmt.Sprintf("Did you see this email?")
+	//body := fmt.Sprintf("You requested a password reset. Use the code below to reset your password:\n\n%s", code) // Email body with the numeric code
 
 	msg := []byte("From: 'me'\r\n" +
 		"To: " + userEmail + "\r\n" +
