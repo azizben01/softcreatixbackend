@@ -66,7 +66,7 @@ func main() {
 
 port := os.Getenv("PORT")
 if port == "" {
-    port = "2020"  // Fallback for local development
+    port = "8080"  // Fallback for local development
 }
  router.Run(":" + port)
 }
@@ -399,8 +399,7 @@ func sendResetEmail(userEmail string, code string) error {
 
 	var message gmail.Message
 	subject := "Password Reset Request"
-	body:=fmt.Sprintf("Did you see this email?")
-	//body := fmt.Sprintf("You requested a password reset. Use the code below to reset your password:\n\n%s", code) // Email body with the numeric code
+	body := fmt.Sprintf("You requested a password reset. Use the code below to reset your password:\n\n%s", code) // Email body with the numeric code
 
 	msg := []byte("From: 'me'\r\n" +
 		"To: " + userEmail + "\r\n" +
