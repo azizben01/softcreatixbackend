@@ -425,53 +425,104 @@ func generateResetCode() (string, error) {
 }
 
 
-// function for requesting the password reset code via email
+// // function for requesting the password reset code via email
+// func RequestPasswordReset(ctx *gin.Context) {
+// 	fmt.Println("RequestPasswordReset function called")
+// 	var req struct {
+// 		Email string `json:"email"`
+// 	}
+
+// 	if err := ctx.ShouldBindJSON(&req); err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+// 		return
+// 	}
+// 	// Normalize the email to lowercase
+// 	req.Email = strings.ToLower(req.Email)
+
+// 	//var employee Employees
+// 	var administrator Admin
+// 	err := database.DB.QueryRow("SELECT adminid, email FROM admin WHERE email = $1", req.Email).Scan(&administrator.Adminid, &administrator.Email)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email not found"})
+// 		return
+// 	} else {
+// 		fmt.Println("email is existing")
+// 	}
+
+// 	// Generate the reset code
+// 	code, err := generateResetCode()
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate reset code"})
+// 		return
+// 	}
+
+// 	// Store the token in the database with an expiry time
+// 	expiry := time.Now().Add(1 * time.Hour).UTC()
+
+// 	_, err = database.DB.Exec("UPDATE admin SET resettoken = $1, resettokenexpiry = $2 WHERE email = $3", code, expiry, req.Email)
+
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store reset token"})
+// 		return
+// 	}
+// 	// Send the password reset email
+// 	fmt.Println("Sending email to:", administrator.Email)
+// 	err = sendResetEmail(administrator.Email, code)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send password reset email"})
+// 		return
+// 	}
+
+// 	ctx.JSON(http.StatusOK, gin.H{"message": "Password reset email sent"})
+// }
+
 func RequestPasswordReset(ctx *gin.Context) {
-	fmt.Println("RequestPasswordReset function called")
-	var req struct {
-		Email string `json:"email"`
-	}
+    fmt.Println("RequestPasswordReset function called")
 
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
-	}
-	// Normalize the email to lowercase
-	req.Email = strings.ToLower(req.Email)
+    var req struct {
+        Email string `json:"email"`
+    }
 
-	//var employee Employees
-	var administrator Admin
-	err := database.DB.QueryRow("SELECT adminid, email FROM admin WHERE email = $1", req.Email).Scan(&administrator.Adminid, &administrator.Email)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email not found"})
-		return
-	} else {
-		fmt.Println("email is existing")
-	}
+    if err := ctx.ShouldBindJSON(&req); err != nil {
+        fmt.Println("Invalid input:", err)
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+        return
+    }
+    req.Email = strings.ToLower(req.Email)
 
-	// Generate the reset code
-	code, err := generateResetCode()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate reset code"})
-		return
-	}
+    var administrator Admin
+    err := database.DB.QueryRow("SELECT adminid, email FROM admin WHERE email = $1", req.Email).Scan(&administrator.Adminid, &administrator.Email)
+    if err != nil {
+        fmt.Println("Email not found in database:", err)
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email not found"})
+        return
+    }
+    fmt.Println("Email exists in database:", administrator.Email)
 
-	// Store the token in the database with an expiry time
-	expiry := time.Now().Add(1 * time.Hour).UTC()
+    code, err := generateResetCode()
+    if err != nil {
+        fmt.Println("Error generating reset code:", err)
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate reset code"})
+        return
+    }
+    fmt.Println("Generated reset code:", code)
 
-	_, err = database.DB.Exec("UPDATE admin SET resettoken = $1, resettokenexpiry = $2 WHERE email = $3", code, expiry, req.Email)
+    expiry := time.Now().Add(1 * time.Hour).UTC()
+    _, err = database.DB.Exec("UPDATE admin SET resettoken = $1, resettokenexpiry = $2 WHERE email = $3", code, expiry, req.Email)
+    if err != nil {
+        fmt.Println("Failed to store reset token:", err)
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store reset token"})
+        return
+    }
 
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store reset token"})
-		return
-	}
-	// Send the password reset email
-	fmt.Println("Sending email to:", administrator.Email)
-	err = sendResetEmail(administrator.Email, code)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send password reset email"})
-		return
-	}
+    fmt.Println("Attempting to send email to:", administrator.Email)
+    err = sendResetEmail(administrator.Email, code)
+    if err != nil {
+        fmt.Println("Failed to send password reset email:", err)
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send password reset email"})
+        return
+    }
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Password reset email sent"})
+    fmt.Println("Password reset email sent successfully")
+    ctx.JSON(http.StatusOK, gin.H{"message": "Password reset email sent"})
 }
