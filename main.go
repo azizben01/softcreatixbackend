@@ -545,21 +545,20 @@ func VerifyResetCode(ctx *gin.Context) {
 
 // 	context.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully"})
 // }
-
-
 // Function to reset the admin password
+
 func ResetPassword(context *gin.Context) {
 	var req struct {
 		Password string `json:"password"`
 	}
 
-	// Bind JSON input
+	// Bind JSON input to struct
 	if err := context.ShouldBindJSON(&req); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	// Retrieve admin ID from the context, assuming you have set it up previously
+	// Retrieve admin ID, assuming it's accessible from middleware or session context
 	adminID, exists := context.Get("adminid")
 	if !exists {
 		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -573,6 +572,25 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
+	// Retrieve the current password from the database
+	var currentHashedPassword string
+	err := database.DB.QueryRow("SELECT password FROM admin WHERE adminid = $1", adminIDInt).Scan(&currentHashedPassword)
+	if err == sql.ErrNoRows {
+		context.JSON(http.StatusNotFound, gin.H{"error": "Admin not found"})
+		return
+	} else if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	// Check if the new password matches the current password
+	err = bcrypt.CompareHashAndPassword([]byte(currentHashedPassword), []byte(req.Password))
+	if err == nil {
+		// Passwords match, so we can't proceed
+		context.JSON(http.StatusBadRequest, gin.H{"error": "New password must be different from the current password"})
+		return
+	}
+
 	// Hash the new password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -580,7 +598,7 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	// Update the admin's password in the database
+	// Update the password in the database
 	_, err = database.DB.Exec("UPDATE admin SET password = $1 WHERE adminid = $2", hashedPassword, adminIDInt)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
