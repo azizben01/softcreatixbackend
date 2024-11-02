@@ -518,33 +518,75 @@ func VerifyResetCode(ctx *gin.Context) {
 }
 
 // function for updating the new password in the database
+// func ResetPassword(context *gin.Context) {
+// 	var req struct {
+// 		Password string `json:"password"`
+// 	}
+
+// 	if err := context.ShouldBindJSON(&req); err != nil {
+// 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+// 		return
+// 	}
+
+// 	// Hash the new password before storing it in the database
+
+// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+// 	if err != nil {
+// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+// 		return
+// 	}
+
+// 	// Update the user's password and invalidate the reset token
+// 	_, err = database.DB.Exec("UPDATE admin SET password = $1, resettoken = NULL, resettokenexpiry = NULL WHERE email = $2", hashedPassword)
+// 	if err != nil {
+// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+// 		return
+// 	}
+
+// 	context.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully"})
+// }
+
+
+// Function to reset the admin password
 func ResetPassword(context *gin.Context) {
 	var req struct {
-		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
+	// Bind JSON input
 	if err := context.ShouldBindJSON(&req); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	// Hash the new password before storing it in the database
+	// Retrieve admin ID from the context, assuming you have set it up previously
+	adminID, exists := context.Get("adminid")
+	if !exists {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 
+	// Convert the admin ID to int (assuming adminID is stored as an int)
+	adminIDInt, ok := adminID.(int)
+	if !ok {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	// Hash the new password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
 
-	// Update the user's password and invalidate the reset token
-	_, err = database.DB.Exec("UPDATE admin SET password = $1, resettoken = NULL, resettokenexpiry = NULL WHERE email = $2", hashedPassword, req.Email)
+	// Update the admin's password in the database
+	_, err = database.DB.Exec("UPDATE admin SET password = $1 WHERE adminid = $2", hashedPassword, adminIDInt)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
 		return
 	}
 
+	// Respond with a success message
 	context.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully"})
 }
-
-
