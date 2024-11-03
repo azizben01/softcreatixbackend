@@ -516,36 +516,42 @@ func VerifyResetCode(ctx *gin.Context) {
 	// If the code is valid, respond with success
 	ctx.JSON(http.StatusOK, gin.H{"message": "Code verified", "email": email})
 }
-
-// function for updating the new password in the database
+// ResetPassword allows the user to reset their password
 func ResetPassword(context *gin.Context) {
-	var req struct {
-		Password string `json:"password"`
-		Email    string `json:"email"`
-	}
+    var req struct {
+        Password string `json:"password"`
+    }
 
-	if err := context.ShouldBindJSON(&req); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
-	}
+    // Bind the JSON payload to the req struct
+    if err := context.ShouldBindJSON(&req); err != nil {
+        context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+        return
+    }
 
-	// Hash the new password before storing it in the database
+    // Hash the new password before storing it in the database
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+    if err != nil {
+        context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+        return
+    }
+    fmt.Println("New password has been successfully hashed.")
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-		return
-	} else {
-		fmt.Println("your new password has been successfully hashed")
-	}
+    // Retrieve the admin identifier from context, session, or JWT (e.g., "email" or "adminID")
+    adminEmail := context.GetString("email") // Assuming `email` is set in the context
 
-	// Update the user's password and invalidate the reset token
-	_, err = database.DB.Exec("UPDATE admin SET password = $1, resettoken = NULL, resettokenexpiry = NULL WHERE email = $2", hashedPassword, req.Email)
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
-		return
-	}
+    // Update the user's password in the database
+    result, err := database.DB.Exec("UPDATE admin SET password = $1, resettoken = NULL, resettokenexpiry = NULL WHERE email = $2", hashedPassword, adminEmail)
+    if err != nil {
+        context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+        return
+    }
 
-	context.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully"})
+    // Confirm that the row was actually updated
+    rowsAffected, _ := result.RowsAffected()
+    if rowsAffected == 0 {
+        context.JSON(http.StatusNotFound, gin.H{"error": "Admin not found or password update unsuccessful"})
+        return
+    }
+
+    context.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully"})
 }
-
