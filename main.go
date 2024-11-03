@@ -457,7 +457,7 @@ func RequestPasswordReset(ctx *gin.Context) {
     }
     fmt.Println("Generated reset code:", code)
 
-    expiry := time.Now().Add(1 * time.Hour).UTC()
+    expiry := time.Now().Add(1 * time.Hour).In(time.FixedZone("Africa/Kigali", 2*60*60))
     _, err = database.DB.Exec("UPDATE admin SET resettoken = $1, resettokenexpiry = $2 WHERE email = $3", code, expiry, req.Email)
     if err != nil {
         fmt.Println("Failed to store reset token:", err)
