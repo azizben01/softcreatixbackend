@@ -21,7 +21,7 @@ func GetTableQueries() []string {
 			email	   		  TEXT NOT NULL,
 			status     		  TEXT,
 			resettoken        TEXT,
-	        resettokenexpiry  TIMESTAMP AT TIME ZONE
+	        resettokenexpiry  TIMESTAMP WITH TIME ZONE
 			
 		)`,
 	}
