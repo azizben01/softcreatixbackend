@@ -518,82 +518,34 @@ func VerifyResetCode(ctx *gin.Context) {
 }
 
 // function for updating the new password in the database
-// func ResetPassword(context *gin.Context) {
-// 	var req struct {
-// 		Password string `json:"password"`
-// 	}
-
-// 	if err := context.ShouldBindJSON(&req); err != nil {
-// 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-// 		return
-// 	}
-
-// 	// Hash the new password before storing it in the database
-
-// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-// 	if err != nil {
-// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-// 		return
-// 	}
-
-// 	// Update the user's password and invalidate the reset token
-// 	_, err = database.DB.Exec("UPDATE admin SET password = $1, resettoken = NULL, resettokenexpiry = NULL WHERE email = $2", hashedPassword)
-// 	if err != nil {
-// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
-// 		return
-// 	}
-
-// 	context.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully"})
-// }
-// Function to reset the admin password
-
-// Function to reset the admin password
 func ResetPassword(context *gin.Context) {
 	var req struct {
-		Email    string `json:"email"`
 		Password string `json:"password"`
+		Email    string `json:"email"`
 	}
 
-	// Bind JSON input to struct
 	if err := context.ShouldBindJSON(&req); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	// Retrieve the current password from the database using email
-	var currentHashedPassword string
-	var adminID string
-	err := database.DB.QueryRow("SELECT adminid, password FROM admin WHERE email = $1", req.Email).Scan(&adminID, &currentHashedPassword)
-	if err == sql.ErrNoRows {
-		context.JSON(http.StatusNotFound, gin.H{"error": "Admin not found"})
-		return
-	} else if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
-	}
+	// Hash the new password before storing it in the database
 
-	// Check if the new password matches the current password
-	err = bcrypt.CompareHashAndPassword([]byte(currentHashedPassword), []byte(req.Password))
-	if err == nil {
-		// Passwords match, so we can't proceed
-		context.JSON(http.StatusBadRequest, gin.H{"error": "New password must be different from the current password"})
-		return
-	}
-
-	// Hash the new password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
+	} else {
+		fmt.Println("your new password has been successfully hashed")
 	}
 
-	// Update the password in the database
-	_, err = database.DB.Exec("UPDATE admin SET password = $1 WHERE adminid = $2", hashedPassword, adminID)
+	// Update the user's password and invalidate the reset token
+	_, err = database.DB.Exec("UPDATE admin SET password = $1, resettoken = NULL, resettokenexpiry = NULL WHERE email = $2", hashedPassword, req.Email)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
 		return
 	}
 
-	// Respond with a success message
 	context.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully"})
 }
+
