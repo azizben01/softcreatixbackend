@@ -457,7 +457,7 @@ func RequestPasswordReset(ctx *gin.Context) {
     }
     fmt.Println("Generated reset code:", code)
 
-    expiry := time.Now().Add(1 * time.Hour).In(time.FixedZone("Africa/Kigali", 2*60*60))
+    expiry := time.Now().Add(1 * time.Hour).UTC()
     _, err = database.DB.Exec("UPDATE admin SET resettoken = $1, resettokenexpiry = $2 WHERE email = $3", code, expiry, req.Email)
     if err != nil {
         fmt.Println("Failed to store reset token:", err)
@@ -514,7 +514,7 @@ func VerifyResetCode(ctx *gin.Context) {
 	}
 
 	// If the code is valid, respond with success
-	ctx.JSON(http.StatusOK, gin.H{"message": "Code verified", "email": email})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Code verified", "resettoken": storedCode})
 }
 
 
@@ -522,6 +522,7 @@ func VerifyResetCode(ctx *gin.Context) {
 func ResetPassword(context *gin.Context) {
 	var req struct {
 		Password string `json:"password"`
+		ResetToken string `json:"resettoken"`
 	}
 
 	// Bind the JSON input
@@ -530,9 +531,8 @@ func ResetPassword(context *gin.Context) {
 		return
 	}
 
-	// Retrieve the `resettoken` from the context or session
-	resetToken, exists := context.Get("resettoken")
-	if !exists || resetToken == "" {
+	// Check if reset token is provided
+	if req.ResetToken == "" {
 		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
 		return
 	}
@@ -545,7 +545,7 @@ func ResetPassword(context *gin.Context) {
 	}
 
 	// Perform the update query with the reset token
-	result, err := database.DB.Exec("UPDATE admin SET password = $1, resettoken = NULL, resettokenexpiry = NULL WHERE resettoken = $2", hashedPassword, resetToken)
+	result, err := database.DB.Exec("UPDATE admin SET password = $1, resettoken = NULL, resettokenexpiry = NULL WHERE resettoken = $2", hashedPassword, req.ResetToken)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
 		return
