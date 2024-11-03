@@ -477,8 +477,6 @@ func RequestPasswordReset(ctx *gin.Context) {
     ctx.JSON(http.StatusOK, gin.H{"message": "Password reset email sent"})
 }
 
-
-// function used to verify the reset code then allow the user to change their password
 func VerifyResetCode(ctx *gin.Context) {
 	var req struct {
 		Code string `json:"code"`
@@ -494,9 +492,7 @@ func VerifyResetCode(ctx *gin.Context) {
 	var email string
 
 	// Find the user by the reset code
-
 	err := database.DB.QueryRow("SELECT email, resettoken, resettokenexpiry FROM admin WHERE resettoken = $1", req.Code).Scan(&email, &storedCode, &expiry)
-
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or expired code"})
 		return
@@ -513,49 +509,49 @@ func VerifyResetCode(ctx *gin.Context) {
 		return
 	}
 
-	// If the code is valid, respond with success
+	// If the code is valid, respond with success and return the reset token
 	ctx.JSON(http.StatusOK, gin.H{"message": "Code verified", "resettoken": storedCode})
 }
 
 
-// ResetPassword allows the user to reset their password
-func ResetPassword(context *gin.Context) {
+func ResetPassword(ctx *gin.Context) {
 	var req struct {
-		Password string `json:"password"`
+		Password   string `json:"password"`
 		ResetToken string `json:"resettoken"`
 	}
 
 	// Bind the JSON input
-	if err := context.ShouldBindJSON(&req); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
 	// Check if reset token is provided
 	if req.ResetToken == "" {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
 		return
 	}
 
 	// Hash the new password before storing it
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
 
 	// Perform the update query with the reset token
 	result, err := database.DB.Exec("UPDATE admin SET password = $1, resettoken = NULL, resettokenexpiry = NULL WHERE resettoken = $2", hashedPassword, req.ResetToken)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
 		return
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "Admin not found or password update unsuccessful"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Admin not found or password update unsuccessful"})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully"})
 }
+
