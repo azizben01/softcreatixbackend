@@ -246,7 +246,7 @@ type Message struct {
 	Email   		string `json:"email"`
 	Message 		string `json:"message"`
 	Created_at 		*time.Time `json:"created_at"`
-	Id 				int 	`json:"is"`
+	Id 				int 	`json:"id`
 	Is_deleted		bool     `json:"is_deleted"`
 }
 func submitContactForm(context *gin.Context) {
