@@ -40,17 +40,18 @@ func main() {
 
 	// routers
 	router.POST("/services", requestService)
-	router.GET("/requestlist", requestList)
-	router.PUT("/markAsCompleted/:id/complete", markAsCompleted)
-	router.DELETE("/deleteRequest/:id", deleteRequest) // New endpoint
 	router.POST("/createadmin", CreateAdmin)
 	router.POST("/adminlogin", AdminLogin)
 	router.POST("/submitcontact", submitContactForm)
-	router.GET("/messagelist", MessageList)
-	router.DELETE("/deletecustomermessage/:id", DeleteCustomerMessage)
-	router.POST("/requestpasswordreset", RequestPasswordReset)
+    router.POST("/requestpasswordreset", RequestPasswordReset)
 	router.POST("/verifycode", VerifyResetCode)
 	router.POST("/resetpassword", ResetPassword)
+	router.GET("/requestlist", requestList)
+	router.GET("/messagelist", MessageList)
+	router.PUT("/markAsCompleted/:id/complete", markAsCompleted)
+	router.DELETE("/deleteRequest/:id", deleteRequest)
+	router.DELETE("/deletecustomermessage/:id", DeleteCustomerMessage)
+	
 	//getTokenJSON()
 
 
@@ -144,6 +145,15 @@ func deleteRequest(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"message": "Request marked as deleted"})
 }
 
+func DeleteCustomerMessage(context *gin.Context) {
+	id := context.Param("id")
+	_, err := database.DB.Exec("UPDATE contact SET is_deleted = TRUE WHERE id = $1", id) // Set is_deleted to true
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark customer message as deleted"})
+		return
+	}
+	context.JSON(http.StatusOK, gin.H{"message": "customer message marked as deleted"})
+}
 
 // Below are the functions related to admin
 type Admin struct {
@@ -270,7 +280,7 @@ func MessageList(context *gin.Context) {
 	}
 	for rows.Next() {
 		var list Message
-		err := rows.Scan(&list.Name, &list.Email, &list.Message, &list.Created_at, &list.Id, &list.Is_deleted)
+		err := rows.Scan(&list.Name, &list.Email, &list.Message, &list.Id, &list.Is_deleted)
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, gin.H{"error": "error processing customer message list"})
 			fmt.Println(err)
@@ -280,18 +290,6 @@ func MessageList(context *gin.Context) {
 	}
 	context.JSON(http.StatusOK, message)
 }
-
-
-func DeleteCustomerMessage(context *gin.Context) {
-	id := context.Param("id")
-	_, err := database.DB.Exec("UPDATE contact SET is_deleted = TRUE WHERE id = $1", id) // Set is_deleted to true
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark customer message as deleted"})
-		return
-	}
-	context.JSON(http.StatusOK, gin.H{"message": "customer message marked as deleted"})
-}
-
 
 // Generate token then send mail
 func getTokenJSON() {
