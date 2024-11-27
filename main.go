@@ -551,11 +551,7 @@ func updateAdminEmail(c *gin.Context) {
         return
     }
 	  // Retrieve the admin data based on the admin's email or other identifier (not password)
-	  var storedAdmin struct {
-        Adminid  string
-        Password string
-        Email    string
-    }
+	  var storedAdmin Admin
 
 	  // Verify the password
 	  err := bcrypt.CompareHashAndPassword([]byte(storedAdmin.Password), []byte(req.Password))
