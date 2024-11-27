@@ -259,7 +259,7 @@ func updateAdminEmail(c *gin.Context) {
 	  // Retrieve the admin data based on the admin's email or other identifier (not password)
 	  
 	var storeAdmin Admin
-	err := database.DB.QueryRow("SELECT adminid, email, firstname, lastname, phonenumber, password, status FROM admin WHERE email=$1", req.Password).
+	err := database.DB.QueryRow("SELECT adminid, email, firstname, lastname, phonenumber, password, status FROM admin WHERE password=$1", req.Password).
 	Scan(&storeAdmin.Adminid, &storeAdmin.Email,&storeAdmin.Firstname, &storeAdmin.Lastname, &storeAdmin.Phonenumber,&storeAdmin.Password, &storeAdmin.Status)
 
 	if err != nil {
