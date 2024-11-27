@@ -538,12 +538,12 @@ func ResetPassword(ctx *gin.Context) {
 
 
 /* FUNCTION TO CHANGE THE ADMIN EMAIL */
+
 func updateAdminEmail(c *gin.Context) {
     var req struct {
-        Password  string `json:"password"`
-        NewEmail  string `json:"newEmail"`
+        Password string `json:"password"`
+        NewEmail string `json:"newEmail"`
     }
-	fmt.Println("the password I provided is:", req.Password)
 
     // Bind the JSON request to the struct
     if err := c.ShouldBindJSON(&req); err != nil {
@@ -551,25 +551,22 @@ func updateAdminEmail(c *gin.Context) {
         return
     }
 
-    // // Normalize the new email to lowercase
-    // req.NewEmail = strings.ToLower(req.NewEmail)
-
-    // Retrieve the admin data based on the provided password
+    // Retrieve the admin data based on the admin's email or other identifier (not password)
     var storedAdmin struct {
-        Adminid   string
-        Password  string
-        Email     string
+        Adminid  string
+        Password string
+        Email    string
     }
     err := database.DB.QueryRow(
-        "SELECT adminid, password, email FROM admin WHERE password = $1", req.Password,
+        "SELECT adminid, password, email FROM admin WHERE email = $1", req.NewEmail, // Or another unique identifier, like username.
     ).Scan(&storedAdmin.Adminid, &storedAdmin.Password, &storedAdmin.Email)
 
     if err != nil {
         if err == sql.ErrNoRows {
-            c.JSON(http.StatusUnauthorized, gin.H{"error": "Password incorrect."})
-        } else {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Admin not found."})
+            return
         }
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
         return
     }
 
@@ -594,7 +591,7 @@ func updateAdminEmail(c *gin.Context) {
 
     // Update the admin's email
     _, err = database.DB.Exec(
-        "UPDATE admin SET email = $1 WHERE password = $2", req.NewEmail, req.Password,
+        "UPDATE admin SET email = $1 WHERE adminid = $2", req.NewEmail, storedAdmin.Adminid,
     )
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update email"})
@@ -603,7 +600,7 @@ func updateAdminEmail(c *gin.Context) {
 
     // Return success response
     c.JSON(http.StatusOK, gin.H{
-        "message":   "Email updated successfully",
-        "newEmail":  req.NewEmail,
+        "message":  "Email updated successfully",
+        "newEmail": req.NewEmail,
     })
 }
