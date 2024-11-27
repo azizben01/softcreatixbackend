@@ -543,6 +543,7 @@ func updateAdminEmail(c *gin.Context) {
         Password  string `json:"password"`
         NewEmail  string `json:"newEmail"`
     }
+	fmt.Println("the password I provided is:", req.Password)
 
     // Bind the JSON request to the struct
     if err := c.ShouldBindJSON(&req); err != nil {
