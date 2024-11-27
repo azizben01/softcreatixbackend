@@ -553,14 +553,8 @@ func updateAdminEmail(c *gin.Context) {
 	  // Retrieve the admin data based on the admin's email or other identifier (not password)
 	  var storedAdmin Admin
 
-	  // Verify the password
-	  err := bcrypt.CompareHashAndPassword([]byte(storedAdmin.Password), []byte(req.Password))
-	  if err != nil {
-		  c.JSON(http.StatusUnauthorized, gin.H{"error": "Passwords do not match."})
-		  return
-	  }
   
-    err = database.DB.QueryRow(
+    err := database.DB.QueryRow(
         "SELECT adminid, password, email FROM admin WHERE password = $1", req.Password, // Or another unique identifier, like username.
     ).Scan(&storedAdmin.Adminid, &storedAdmin.Password, &storedAdmin.Email)
 
@@ -572,6 +566,12 @@ func updateAdminEmail(c *gin.Context) {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
         return
     }
+	  // Verify the password
+	  err = bcrypt.CompareHashAndPassword([]byte(storedAdmin.Password), []byte(req.Password))
+	  if err != nil {
+		  c.JSON(http.StatusUnauthorized, gin.H{"error": "Passwords do not match."})
+		  return
+	  }
 
     // Check if the new email already exists in the system
     var existingEmail string
