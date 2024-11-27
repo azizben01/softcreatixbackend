@@ -46,6 +46,7 @@ func main() {
     router.POST("/requestpasswordreset", RequestPasswordReset)
 	router.POST("/verifycode", VerifyResetCode)
 	router.POST("/resetpassword", ResetPassword)
+	router.POST("/adminEmail",updateAdminEmail)
 	router.GET("/requestlist", requestList)
 	router.GET("/messagelist", MessageList)
 	router.PUT("/markAsCompleted/:id/complete", markAsCompleted)
@@ -533,4 +534,75 @@ func ResetPassword(ctx *gin.Context) {
     }
 
     ctx.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully"})
+}
+
+
+/* FUNCTION TO CHANGE THE ADMIN EMAIL */
+func updateAdminEmail(c *gin.Context) {
+    var req struct {
+        Password  string `json:"password"`
+        NewEmail  string `json:"newEmail"`
+    }
+
+    // Bind the JSON request to the struct
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+        return
+    }
+
+    // // Normalize the new email to lowercase
+    // req.NewEmail = strings.ToLower(req.NewEmail)
+
+    // Retrieve the admin data based on the provided password
+    var storedAdmin struct {
+        Adminid   string
+        Password  string
+        Email     string
+    }
+    err := database.DB.QueryRow(
+        "SELECT adminid, password, email FROM admin WHERE password = $1", req.Password,
+    ).Scan(&storedAdmin.Adminid, &storedAdmin.Password, &storedAdmin.Email)
+
+    if err != nil {
+        if err == sql.ErrNoRows {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Password incorrect."})
+        } else {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+        }
+        return
+    }
+
+    // Verify the password
+    err = bcrypt.CompareHashAndPassword([]byte(storedAdmin.Password), []byte(req.Password))
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Password is incorrect."})
+        return
+    }
+
+    // Check if the new email already exists in the system
+    var existingEmail string
+    err = database.DB.QueryRow("SELECT email FROM admin WHERE email = $1", req.NewEmail).Scan(&existingEmail)
+    if err != nil && err != sql.ErrNoRows {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+        return
+    }
+    if existingEmail != "" {
+        c.JSON(http.StatusConflict, gin.H{"error": "Email is already in use"})
+        return
+    }
+
+    // Update the admin's email
+    _, err = database.DB.Exec(
+        "UPDATE admin SET email = $1 WHERE password = $2", req.NewEmail, req.Password,
+    )
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update email"})
+        return
+    }
+
+    // Return success response
+    c.JSON(http.StatusOK, gin.H{
+        "message":   "Email updated successfully",
+        "newEmail":  req.NewEmail,
+    })
 }
