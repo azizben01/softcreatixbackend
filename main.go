@@ -550,30 +550,30 @@ func updateAdminEmail(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
         return
     }
-
-    // Retrieve the admin data based on the admin's email or other identifier (not password)
-    var storedAdmin struct {
+	  // Retrieve the admin data based on the admin's email or other identifier (not password)
+	  var storedAdmin struct {
         Adminid  string
         Password string
         Email    string
     }
-    err := database.DB.QueryRow(
-        "SELECT adminid, password, email FROM admin WHERE email = $1", req.NewEmail, // Or another unique identifier, like username.
+
+	  // Verify the password
+	  err := bcrypt.CompareHashAndPassword([]byte(storedAdmin.Password), []byte(req.Password))
+	  if err != nil {
+		  c.JSON(http.StatusUnauthorized, gin.H{"error": "Passwords do not match."})
+		  return
+	  }
+  
+    err = database.DB.QueryRow(
+        "SELECT adminid, password, email FROM admin WHERE password = $1", req.Password, // Or another unique identifier, like username.
     ).Scan(&storedAdmin.Adminid, &storedAdmin.Password, &storedAdmin.Email)
 
     if err != nil {
         if err == sql.ErrNoRows {
-            c.JSON(http.StatusUnauthorized, gin.H{"error": "Admin not found."})
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Password is incorrect."})
             return
         }
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-        return
-    }
-
-    // Verify the password
-    err = bcrypt.CompareHashAndPassword([]byte(storedAdmin.Password), []byte(req.Password))
-    if err != nil {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Password is incorrect."})
         return
     }
 
