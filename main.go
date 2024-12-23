@@ -31,7 +31,7 @@ func main() {
 
 	// Add CORS middleware
 	router.Use(cors.New(cors.Config{                                
-		AllowOrigins:     []string{"http://localhost:3000", "https://userinterface-gkco.vercel.app"},
+		AllowOrigins:     []string{"http://localhost:3000", "https://userinterface-gkco.vercel.app", "https://softcreatix.com"},
 		AllowMethods:     []string{"POST", "GET", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
