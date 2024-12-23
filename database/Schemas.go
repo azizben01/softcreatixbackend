@@ -13,16 +13,22 @@ func GetTableQueries() []string {
 			status 			VARCHAR(20) DEFAULT 'pending'
 	)`,
 		`CREATE TABLE IF NOT EXISTS admin (
-			adminid 		  SERIAL PRIMARY KEY,
+			adminid 		  SERIAL PRIMARY KEY,		
+			email	   		  TEXT NOT NULL,
 			firstname         TEXT NOT NULL,
 			lastname          TEXT NOT NULL,
 			phonenumber		  INT  NOT NULL,
 			password   		  TEXT NOT NULL,
-			email	   		  TEXT NOT NULL,
 			status     		  TEXT,
 			resettoken        TEXT,
-	        resettokenexpiry  TIMESTAMP WITH TIME ZONE
-			
+	        resettokenexpiry  TIMESTAMP WITH TIME ZONE	
+		)`,
+		`CREATE TABLE IF NOT EXISTS contact (
+			name 		 	TEXT,
+			email 		 	TEXT,
+			message 	 	TEXT,
+			id 		     	INT,
+			is_deleted 	 	bool
 		)`,
 	}
 }

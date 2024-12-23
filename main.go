@@ -58,21 +58,15 @@ func main() {
 
 	db := &database.Database{DB: database.DB}
 	db.InitDatabase()
-	router.GET("/", func(context *gin.Context) {
-		context.JSON(http.StatusOK, gin.H{
-			"message": "Working fine",
+	router.GET("/", func (context *gin.Context) {
+		context.JSON(http.StatusOK, gin.H {
+			"message":"the server is working",
 		})
 	})
-	// err := router.Run(":2020")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-port := os.Getenv("SERVER_PORT")
-if port == "" {
-    port = "8080"  // Fallback for local development
-}
- router.Run(":" + port)
+	err := router.Run(":2020")
+	if err != nil {
+		panic(err)
+	}
 }
 
 
@@ -105,6 +99,8 @@ func requestService(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"message": "Request successfully sent"})
 }
 
+
+
 func requestList(context *gin.Context) {
 	var reqlist []service
 	rows, err := database.DB.Query("SELECT * FROM services WHERE is_deleted = FALSE") // Filter out deleted rows
@@ -126,6 +122,8 @@ func requestList(context *gin.Context) {
 	context.JSON(http.StatusOK, reqlist)
 }
 
+
+
 func markAsCompleted(context *gin.Context) {
 	id := context.Param("id")
 	_, err := database.DB.Exec("UPDATE services SET status = $1 WHERE id = $2", "completed", id)
@@ -136,6 +134,8 @@ func markAsCompleted(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"message": "Request marked as completed"})
 }
 
+
+
 func deleteRequest(context *gin.Context) {
 	id := context.Param("id")
 	_, err := database.DB.Exec("UPDATE services SET is_deleted = TRUE WHERE id = $1", id) // Set is_deleted to true
@@ -145,6 +145,8 @@ func deleteRequest(context *gin.Context) {
 	}
 	context.JSON(http.StatusOK, gin.H{"message": "Request marked as deleted"})
 }
+
+
 
 func DeleteCustomerMessage(context *gin.Context) {
 	id := context.Param("id")

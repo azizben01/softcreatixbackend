@@ -24,27 +24,35 @@ func ConnectDatabase() {
 	// }
 
 	 // Load .env file only if not in production (e.g., when ENVIRONMENT is not "production")
-	 if os.Getenv("ENVIRONMENT") != "production" {
-        err := godotenv.Load()
-        if err != nil {
-            fmt.Println("Error loading .env file")
-        }
-    }
+	//  if os.Getenv("ENVIRONMENT") != "production" {
+    //     err := godotenv.Load()
+    //     if err != nil {
+    //         fmt.Println("Error loading .env file")
+    //     }
+    // }
+	// host := os.Getenv("HOST")
+	// port, _ := strconv.Atoi(os.Getenv("DB_PORT"))
+	// user := os.Getenv("USER")
+	// password := os.Getenv("PASSWORD")
+	// dbname := os.Getenv("DB_NAME")
+
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("error has occured in .env file, please check.")
+	}
 	host := os.Getenv("HOST")
 	port, _ := strconv.Atoi(os.Getenv("DB_PORT"))
 	user := os.Getenv("USER")
 	password := os.Getenv("PASSWORD")
 	dbname := os.Getenv("DB_NAME")
 
-	// fmt.Println("host:", host)
-	// fmt.Println(port)
-	// fmt.Println(user)
-	// fmt.Println("dbname:", dbname)
+	fmt.Println("host:", host)
+	
+	psqlSetup := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+
+
 	// fmt.Println("password:", password)
 	
-
-	psqlSetup := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=require", host, port, user, password, dbname)
-
 	db, errSql := sql.Open("postgres", psqlSetup) // establishes a connection with the database and this connection is stored in the local variable db.
 
 	if errSql != nil {
